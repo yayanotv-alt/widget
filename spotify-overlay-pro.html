@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Spotify Overlay Pro</title>
+
+<style>
+:root {
+  --bg-color: rgba(10,10,15,0.85);
+  --accent-color: #00ffff;
+  --text-color: #ffffff;
+  --radius: 15px;
+  --width: 420px;
+  --scale: 1;
+}
+
+body {
+  margin: 0;
+  background: transparent;
+  font-family: Arial, sans-serif;
+  color: var(--text-color);
+  overflow: hidden;
+}
+
+.widget {
+  display: flex;
+  align-items: center;
+  background: var(--bg-color);
+  padding: 15px;
+  border-radius: var(--radius);
+  width: var(--width);
+  transform: scale(var(--scale));
+  backdrop-filter: blur(15px);
+  transition: all 0.3s ease;
+}
+
+.cover {
+  width: 70px;
+  height: 70px;
+  border-radius: 10px;
+  margin-right: 15px;
+}
+
+.text {
+  flex: 1;
+}
+
+.title {
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.artist {
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.bar {
+  height: 4px;
+  background: var(--accent-color);
+  margin-top: 8px;
+  border-radius: 2px;
+  animation: glow 1.5s infinite alternate;
+}
+
+@keyframes glow {
+  from { box-shadow: 0 0 5px var(--accent-color); }
+  to { box-shadow: 0 0 20px var(--accent-color); }
+}
+
+/* PANEL */
+.panel {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  background: #111;
+  padding: 15px;
+  border-radius: 10px;
+  width: 250px;
+  font-size: 12px;
+  z-index: 9999;
+}
+
+.panel input {
+  width: 100%;
+}
+
+.toggle-btn {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  background: #111;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 12px;
+  z-index: 9999;
+}
+</style>
+</head>
+
+<body>
+
+<div class="toggle-btn" onclick="togglePanel()">⚙</div>
+
+<div class="panel" id="panel">
+  <label>Couleur Accent</label>
+  <input type="color" onchange="updateVar('--accent-color', this.value)">
+
+  <label>Couleur Texte</label>
+  <input type="color" onchange="updateVar('--text-color', this.value)">
+
+  <label>Transparence fond</label>
+  <input type="range" min="0" max="1" step="0.05"
+         onchange="updateBgAlpha(this.value)">
+
+  <label>Arrondi</label>
+  <input type="range" min="0" max="40"
+         onchange="updateVar('--radius', this.value+'px')">
+
+  <label>Largeur</label>
+  <input type="range" min="300" max="600"
+         onchange="updateVar('--width', this.value+'px')">
+
+  <label>Scale</label>
+  <input type="range" min="0.5" max="1.5" step="0.05"
+         onchange="updateVar('--scale', this.value)">
+</div>
+
+<div class="widget">
+  <img id="cover" class="cover">
+  <div class="text">
+    <div id="title" class="title">Musique...</div>
+    <div id="artist" class="artist">Artiste...</div>
+    <div class="bar"></div>
+  </div>
+</div>
+
+<script>
+// =========================
+// PERSONNALISATION
+// =========================
+function updateVar(variable, value){
+  document.documentElement.style.setProperty(variable, value);
+  localStorage.setItem(variable, value);
+}
+
+function updateBgAlpha(value){
+  const bg = `rgba(10,10,15,${value})`;
+  document.documentElement.style.setProperty('--bg-color', bg);
+  localStorage.setItem('--bg-color', bg);
+}
+
+function togglePanel(){
+  const p = document.getElementById("panel");
+  p.style.display = p.style.display === "none" ? "block" : "none";
+}
+
+// Restore settings
+window.onload = () => {
+  ['--accent-color','--text-color','--radius','--width','--scale','--bg-color']
+  .forEach(v => {
+    const val = localStorage.getItem(v);
+    if(val) document.documentElement.style.setProperty(v,val);
+  });
+};
+
+// =========================
+// SPOTIFY API
+// =========================
+const clientId = "08d25e9ba9ce42bab1a35cc71582ad6a";
+const redirectUri = "http://127.0.0.1:8888/callback";
+const scopes = "user-read-currently-playing";
+
+function getToken() {
+  const authUrl =
+  `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=token&redirect_uri=${redirectUri}&scope=${scopes}`;
+  window.location = authUrl;
+}
+
+function getCurrentlyPlaying(token) {
+  fetch("https://api.spotify.com/v1/me/player/currently-playing", {
+    headers: { "Authorization": "Bearer " + token }
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (!data || !data.item) return;
+    document.getElementById("title").innerText = data.item.name;
+    document.getElementById("artist").innerText =
+      data.item.artists.map(a => a.name).join(", ");
+    document.getElementById("cover").src =
+      data.item.album.images[0].url;
+  });
+}
+
+const hash = window.location.hash;
+if (hash) {
+  const token = hash.split("&")[0].split("=")[1];
+  setInterval(() => getCurrentlyPlaying(token), 5000);
+} else {
+  getToken();
+}
+</script>
+
+</body>
+</html>

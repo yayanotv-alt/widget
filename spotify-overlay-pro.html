@@ -138,7 +138,6 @@ body {
 </div>
 
 <script>
-
 // =============================
 // PERSONNALISATION
 // =============================
@@ -167,10 +166,9 @@ window.onload = () => {
 };
 
 // =============================
-// SPOTIFY AUTH
+// SPOTIFY AUTH STABLE
 // =============================
-
-const clientId = "08d25e9ba9ce42bab1a35cc71582ad6a";
+const clientId = "08d25e9ba9ce42bab1a35cc71582ad6a"; 
 const redirectUri = "https://yayanotv-alt.github.io/widget/spotify-overlay-pro.html";
 const scopes = "user-read-currently-playing";
 
@@ -184,32 +182,36 @@ function authenticate() {
   window.location = authUrl;
 }
 
-const hash = window.location.hash;
-
-if (hash.includes("access_token")) {
-  const token = new URLSearchParams(hash.substring(1)).get("access_token");
-  localStorage.setItem("spotify_token", token);
-  window.location.hash = "";
+// Récupère token depuis hash
+function getTokenFromHash() {
+  if (window.location.hash.includes("access_token")) {
+    const token = new URLSearchParams(window.location.hash.substring(1)).get("access_token");
+    localStorage.setItem("spotify_token", token);
+    window.location.hash = ""; // supprime le hash pour éviter boucle
+    return token;
+  }
+  return null;
 }
 
-let token = localStorage.getItem("spotify_token");
+let token = getTokenFromHash() || localStorage.getItem("spotify_token");
 
 if (!token) {
-  authenticate();
+  authenticate(); // Redirige vers Spotify seulement si pas de token
 }
 
 // =============================
 // NOW PLAYING
 // =============================
-
 function getCurrentlyPlaying() {
+  if (!token) return;
   fetch("https://api.spotify.com/v1/me/player/currently-playing", {
     headers: { Authorization: "Bearer " + token }
   })
   .then(res => {
-    if (res.status === 401) {
+    if (res.status === 401) { // token expiré
       localStorage.removeItem("spotify_token");
-      authenticate();
+      window.location.reload(); // relance auth
+      return;
     }
     return res.json();
   })
@@ -222,12 +224,11 @@ function getCurrentlyPlaying() {
     document.getElementById("cover").src =
       data.item.album.images[0].url;
   })
-  .catch(() => {});
+  .catch(()=>{});
 }
 
 setInterval(getCurrentlyPlaying, 5000);
 getCurrentlyPlaying();
-
 </script>
 
 </body>

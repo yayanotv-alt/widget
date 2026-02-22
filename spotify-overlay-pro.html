@@ -2,122 +2,40 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Spotify Overlay Pro Stable</title>
-
+<title>Spotify Overlay Pro PKCE</title>
 <style>
 :root {
   --bg-color: rgba(10,10,15,0.85);
   --accent-color: #00ffff;
-  --text-color: #ffffff;
+  --text-color: #fff;
   --radius: 15px;
   --width: 420px;
   --scale: 1;
 }
 
-body {
-  margin: 0;
-  background: transparent;
-  font-family: Arial, sans-serif;
-  color: var(--text-color);
-  overflow: hidden;
-}
-
-.widget {
-  display: flex;
-  align-items: center;
-  background: var(--bg-color);
-  padding: 15px;
-  border-radius: var(--radius);
-  width: var(--width);
-  transform: scale(var(--scale));
-  backdrop-filter: blur(15px);
-  transition: all 0.3s ease;
-}
-
-.cover {
-  width: 70px;
-  height: 70px;
-  border-radius: 10px;
-  margin-right: 15px;
-}
-
-.text {
-  flex: 1;
-}
-
-.title {
-  font-weight: bold;
-  font-size: 16px;
-}
-
-.artist {
-  font-size: 14px;
-  opacity: 0.8;
-}
-
-.bar {
-  height: 4px;
-  background: var(--accent-color);
-  margin-top: 8px;
-  border-radius: 2px;
-  animation: glow 1.5s infinite alternate;
-}
-
-@keyframes glow {
-  from { box-shadow: 0 0 5px var(--accent-color); }
-  to { box-shadow: 0 0 20px var(--accent-color); }
-}
-
-/* PANEL */
-.panel {
-  position: fixed;
-  top: 10px;
-  right: 10px;
-  background: #111;
-  padding: 15px;
-  border-radius: 10px;
-  width: 250px;
-  font-size: 12px;
-  z-index: 9999;
-}
-
-.panel input {
-  width: 100%;
-}
-
-.toggle-btn {
-  position: fixed;
-  top: 10px;
-  left: 10px;
-  background: #111;
-  color: white;
-  padding: 6px 10px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 12px;
-  z-index: 9999;
-}
+body { margin:0; background:transparent; font-family:Arial,sans-serif; color:var(--text-color); overflow:hidden;}
+.widget {display:flex; align-items:center; background:var(--bg-color); padding:15px; border-radius:var(--radius); width:var(--width); transform:scale(var(--scale)); backdrop-filter:blur(15px); transition:all 0.3s ease;}
+.cover {width:70px;height:70px;border-radius:10px;margin-right:15px;}
+.text {flex:1;}
+.title {font-weight:bold;font-size:16px;}
+.artist {font-size:14px;opacity:0.8;}
+.bar {height:4px;background:var(--accent-color);margin-top:8px;border-radius:2px;animation:glow 1.5s infinite alternate;}
+@keyframes glow {from{box-shadow:0 0 5px var(--accent-color);}to{box-shadow:0 0 20px var(--accent-color);}}
+.panel {position:fixed;top:10px;right:10px;background:#111;padding:15px;border-radius:10px;width:250px;font-size:12px;z-index:9999;}
+.panel input{width:100%;}
+.toggle-btn{position:fixed;top:10px;left:10px;background:#111;color:white;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:12px;z-index:9999;}
 </style>
 </head>
 <body>
-
 <div class="toggle-btn" onclick="togglePanel()">⚙</div>
-
 <div class="panel" id="panel">
-  <label>Accent</label>
-  <input type="color" onchange="updateVar('--accent-color', this.value)">
-  <label>Text</label>
-  <input type="color" onchange="updateVar('--text-color', this.value)">
-  <label>Transparence</label>
-  <input type="range" min="0" max="1" step="0.05" onchange="updateBgAlpha(this.value)">
-  <label>Arrondi</label>
-  <input type="range" min="0" max="40" onchange="updateVar('--radius', this.value+'px')">
-  <label>Largeur</label>
-  <input type="range" min="300" max="600" onchange="updateVar('--width', this.value+'px')">
-  <label>Scale</label>
-  <input type="range" min="0.5" max="1.5" step="0.05" onchange="updateVar('--scale', this.value)">
+  <label>Accent</label><input type="color" onchange="updateVar('--accent-color', this.value)">
+  <label>Text</label><input type="color" onchange="updateVar('--text-color', this.value)">
+  <label>Transparence</label><input type="range" min="0" max="1" step="0.05" onchange="updateBgAlpha(this.value)">
+  <label>Arrondi</label><input type="range" min="0" max="40" onchange="updateVar('--radius', this.value+'px')">
+  <label>Largeur</label><input type="range" min="300" max="600" onchange="updateVar('--width', this.value+'px')">
+  <label>Scale</label><input type="range" min="0.5" max="1.5" step="0.05" onchange="updateVar('--scale', this.value)">
 </div>
-
 <div class="widget" id="widget">
   <img id="cover" class="cover" src="">
   <div class="text">
@@ -128,96 +46,70 @@ body {
 </div>
 
 <script>
-// ---------------------------
-// PERSONNALISATION
-// ---------------------------
-function updateVar(variable, value){
-  document.documentElement.style.setProperty(variable, value);
-  localStorage.setItem(variable, value);
-}
+// ---------- PERSONNALISATION ----------
+function updateVar(variable,value){document.documentElement.style.setProperty(variable,value); localStorage.setItem(variable,value);}
+function updateBgAlpha(value){document.documentElement.style.setProperty('--bg-color',`rgba(10,10,15,${value})`); localStorage.setItem('--bg-color',`rgba(10,10,15,${value})`);}
+function togglePanel(){const p=document.getElementById("panel"); p.style.display = p.style.display==='none'?'block':'none';}
+window.onload=()=>{['--accent-color','--text-color','--radius','--width','--scale','--bg-color'].forEach(v=>{const val=localStorage.getItem(v); if(val) document.documentElement.style.setProperty(v,val);});};
 
-function updateBgAlpha(value){
-  const bg = `rgba(10,10,15,${value})`;
-  document.documentElement.style.setProperty('--bg-color', bg);
-  localStorage.setItem('--bg-color', bg);
-}
-
-function togglePanel(){
-  const p = document.getElementById("panel");
-  p.style.display = p.style.display === "none" ? "block" : "none";
-}
-
-window.onload = () => {
-  ['--accent-color','--text-color','--radius','--width','--scale','--bg-color']
-  .forEach(v => {
-    const val = localStorage.getItem(v);
-    if(val) document.documentElement.style.setProperty(v,val);
-  });
-};
-
-// ---------------------------
-// SPOTIFY AUTH STABLE
-// ---------------------------
+// ---------- SPOTIFY PKCE ----------
 const clientId = "08d25e9ba9ce42bab1a35cc71582ad6a";
 const redirectUri = "https://yayanotv-alt.github.io/widget/spotify-overlay-pro.html";
-const scopes = "user-read-currently-playing";
+const scope = "user-read-currently-playing";
 
-// Lit le token depuis hash si présent
-function getTokenFromHash() {
-  if (window.location.hash.includes("access_token")) {
-    const token = new URLSearchParams(window.location.hash.substring(1)).get("access_token");
-    localStorage.setItem("spotify_token", token);
-    window.location.hash = ""; // supprime hash pour ne pas relancer auth
-    return token;
+// Génère code verifier et challenge
+function generatePKCE(){
+  const verifier = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(32)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+  localStorage.setItem('pkce_verifier',verifier);
+  return verifier;
+}
+
+// Convert string to base64URL
+async function sha256(baseString){
+  const encoder = new TextEncoder();
+  const data = encoder.encode(baseString);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  return btoa(String.fromCharCode(...new Uint8Array(hash))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+
+// Récupère code de query ?code=...
+function getQueryParam(name){return new URLSearchParams(window.location.search).get(name);}
+
+async function authenticatePKCE(){
+  const codeVerifier = generatePKCE();
+  const challenge = await sha256(codeVerifier);
+  const authUrl=`https://accounts.spotify.com/authorize?response_type=code&client_id=${clientId}&scope=${scope}&redirect_uri=${encodeURIComponent(redirectUri)}&code_challenge=${challenge}&code_challenge_method=S256`;
+  window.location.href=authUrl;
+}
+
+async function getTokenPKCE(){
+  const code = getQueryParam('code');
+  if(!code){
+    authenticatePKCE();
+    return null;
   }
-  return null;
+  const verifier = localStorage.getItem('pkce_verifier');
+  const res = await fetch('https://YOUR_FUNCTION_ENDPOINT?code='+code);
+  const data = await res.json();
+  localStorage.setItem('spotify_token',data.access_token);
+  history.replaceState(null,null,redirectUri); // nettoie l'URL
+  return data.access_token;
 }
 
-let token = getTokenFromHash() || localStorage.getItem("spotify_token");
-
-// Auth seulement si pas de token
-if (!token) {
-  const authUrl =
-    "https://accounts.spotify.com/authorize" +
-    "?client_id=" + clientId +
-    "&response_type=token" +
-    "&redirect_uri=" + encodeURIComponent(redirectUri) +
-    "&scope=" + scopes;
-  window.location = authUrl;
+// ---------- NOW PLAYING ----------
+async function updateNowPlaying(){
+  let token = localStorage.getItem('spotify_token');
+  if(!token){ token = await getTokenPKCE(); if(!token) return; }
+  fetch("https://api.spotify.com/v1/me/player/currently-playing",{headers:{Authorization:"Bearer "+token}})
+    .then(res=>{if(res.status===401){localStorage.removeItem('spotify_token'); location.reload();} return res.json();})
+    .then(data=>{if(!data||!data.item) return;
+      document.getElementById("title").innerText=data.item.name;
+      document.getElementById("artist").innerText=data.item.artists.map(a=>a.name).join(",");
+      document.getElementById("cover").src=data.item.album.images[0].url;
+    });
 }
-
-// ---------------------------
-// NOW PLAYING
-// ---------------------------
-function getCurrentlyPlaying() {
-  if (!token) return;
-
-  fetch("https://api.spotify.com/v1/me/player/currently-playing", {
-    headers: { Authorization: "Bearer " + token }
-  })
-  .then(res => {
-    if (res.status === 401) { // token expiré
-      localStorage.removeItem("spotify_token");
-      window.location.reload(); // relance auth une seule fois
-      return;
-    }
-    return res.json();
-  })
-  .then(data => {
-    if (!data || !data.item) return;
-
-    document.getElementById("title").innerText = data.item.name;
-    document.getElementById("artist").innerText =
-      data.item.artists.map(a => a.name).join(", ");
-    document.getElementById("cover").src =
-      data.item.album.images[0].url;
-  })
-  .catch(()=>{});
-}
-
-setInterval(getCurrentlyPlaying, 5000);
-getCurrentlyPlaying();
+setInterval(updateNowPlaying,5000);
+updateNowPlaying();
 </script>
-
 </body>
 </html>

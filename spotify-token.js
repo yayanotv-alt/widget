@@ -9,8 +9,7 @@ exports.handler = async (event) => {
   const response = await fetch("https://accounts.spotify.com/api/token", {
     method: "POST",
     headers: {
-      "Authorization": "Basic " + Buffer.from(08d25e9ba9ce42bab1a35cc71582ad6a + ":" + dbdf37830d1440b68d32ec41b3cd0fc6).toString("base64"),
-      "Content-Type": "application/x-www-form-urlencoded"
+      "Authorization": "Basic " + Buffer.fro
     },
     body: new URLSearchParams({
       grant_type: "authorization_code",
@@ -24,4 +23,5 @@ exports.handler = async (event) => {
     statusCode: 200,
     body: JSON.stringify(data)
   };
+
 };

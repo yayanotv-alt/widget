@@ -105,13 +105,13 @@ body {
 <div class="toggle-btn" onclick="togglePanel()">⚙</div>
 
 <div class="panel" id="panel">
-  <label>Couleur Accent</label>
+  <label>Accent</label>
   <input type="color" onchange="updateVar('--accent-color', this.value)">
 
-  <label>Couleur Texte</label>
+  <label>Text</label>
   <input type="color" onchange="updateVar('--text-color', this.value)">
 
-  <label>Transparence fond</label>
+  <label>Transparence</label>
   <input type="range" min="0" max="1" step="0.05"
          onchange="updateBgAlpha(this.value)">
 
@@ -131,16 +131,17 @@ body {
 <div class="widget">
   <img id="cover" class="cover">
   <div class="text">
-    <div id="title" class="title">Musique...</div>
-    <div id="artist" class="artist">Artiste...</div>
+    <div id="title" class="title">Connexion Spotify...</div>
+    <div id="artist" class="artist"></div>
     <div class="bar"></div>
   </div>
 </div>
 
 <script>
-// =========================
+
+// =============================
 // PERSONNALISATION
-// =========================
+// =============================
 function updateVar(variable, value){
   document.documentElement.style.setProperty(variable, value);
   localStorage.setItem(variable, value);
@@ -157,7 +158,6 @@ function togglePanel(){
   p.style.display = p.style.display === "none" ? "block" : "none";
 }
 
-// Restore settings
 window.onload = () => {
   ['--accent-color','--text-color','--radius','--width','--scale','--bg-color']
   .forEach(v => {
@@ -166,41 +166,68 @@ window.onload = () => {
   });
 };
 
-// =========================
-// SPOTIFY API
-// =========================
+// =============================
+// SPOTIFY AUTH
+// =============================
+
 const clientId = "08d25e9ba9ce42bab1a35cc71582ad6a";
-const redirectUri = "http://127.0.0.1:8888/callback";
+const redirectUri = window.location.href;
 const scopes = "user-read-currently-playing";
 
-function getToken() {
+function authenticate() {
   const authUrl =
-  `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=token&redirect_uri=${redirectUri}&scope=${scopes}`;
+    "https://accounts.spotify.com/authorize" +
+    "?client_id=" + clientId +
+    "&response_type=token" +
+    "&redirect_uri=" + encodeURIComponent(redirectUri) +
+    "&scope=" + scopes;
   window.location = authUrl;
 }
 
-function getCurrentlyPlaying(token) {
+const hash = window.location.hash;
+
+if (hash.includes("access_token")) {
+  const token = new URLSearchParams(hash.substring(1)).get("access_token");
+  localStorage.setItem("spotify_token", token);
+  window.location.hash = "";
+}
+
+let token = localStorage.getItem("spotify_token");
+
+if (!token) {
+  authenticate();
+}
+
+// =============================
+// NOW PLAYING
+// =============================
+
+function getCurrentlyPlaying() {
   fetch("https://api.spotify.com/v1/me/player/currently-playing", {
-    headers: { "Authorization": "Bearer " + token }
+    headers: { Authorization: "Bearer " + token }
   })
-  .then(res => res.json())
+  .then(res => {
+    if (res.status === 401) {
+      localStorage.removeItem("spotify_token");
+      authenticate();
+    }
+    return res.json();
+  })
   .then(data => {
     if (!data || !data.item) return;
+
     document.getElementById("title").innerText = data.item.name;
     document.getElementById("artist").innerText =
       data.item.artists.map(a => a.name).join(", ");
     document.getElementById("cover").src =
       data.item.album.images[0].url;
-  });
+  })
+  .catch(() => {});
 }
 
-const hash = window.location.hash;
-if (hash) {
-  const token = hash.split("&")[0].split("=")[1];
-  setInterval(() => getCurrentlyPlaying(token), 5000);
-} else {
-  getToken();
-}
+setInterval(getCurrentlyPlaying, 5000);
+getCurrentlyPlaying();
+
 </script>
 
 </body>
